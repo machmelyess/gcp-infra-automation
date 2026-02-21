@@ -6,24 +6,28 @@
 
     # Configuration pour la VM Apache
     - name: Installer et démarrer Apache sur VM1
-      if: inventory_hostname == 'vm_apache'
+      when: inventory_hostname == 'vm_apache'  # <-- On utilise 'when' ici
       block:
-        - apt:
+        - name: Installation Apache
+          apt:
             name: apache2
             state: present
             update_cache: yes
-        - copy:
-            content: "<h1>Bienvenue sur Apache (VM1) via GCP Load Balancer</h1>"
+        - name: Page d'accueil Apache
+          copy:
+            content: "<h1>Bienvenue sur Apache (VM1)</h1>"
             dest: /var/www/html/index.html
 
     # Configuration pour la VM Nginx
     - name: Installer et démarrer Nginx sur VM2
-      if: inventory_hostname == 'vm_nginx'
+      when: inventory_hostname == 'vm_nginx'   # <-- Et 'when' ici aussi
       block:
-        - apt:
+        - name: Installation Nginx
+          apt:
             name: nginx
             state: present
             update_cache: yes
-        - copy:
-            content: "<h1>Bienvenue sur Nginx (VM2) via GCP Load Balancer</h1>"
+        - name: Page d'accueil Nginx
+          copy:
+            content: "<h1>Bienvenue sur Nginx (VM2)</h1>"
             dest: /var/www/html/index.nginx-debian.html
