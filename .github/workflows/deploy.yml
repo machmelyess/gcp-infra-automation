@@ -1,8 +1,15 @@
 name: CI/CD GCP Infra & Config
 
+name: Infrastructure Deployment
+
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master  # ou main
+  workflow_dispatch: # <--- AJOUTE CETTE LIGNE EXACTEMENT ICI
+
+jobs:
+  # ... le reste de ton code
 
 jobs:
   deploy:
@@ -45,3 +52,5 @@ jobs:
         working-directory: ./ansible
         env:
           ANSIBLE_HOST_KEY_CHECKING: False
+
+          
