@@ -4,29 +4,27 @@ on:
   push:
     branches:
       - master
-  workflow_dispatch: # Pour avoir le bouton bleu "Run workflow"
+  workflow_dispatch:
 
 jobs:
-  terraform:
+  terraform-task:
     name: 'Terraform and Ansible'
     runs-on: ubuntu-latest
 
-    # Variables d'environnement pour GCP et Terraform
     env:
       GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
       TF_VAR_ssh_pub_key: ${{ secrets.SSH_PUBLIC_KEY }}
 
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - - name: Terraform Init
+      - name: Terraform Init
         run: |
           terraform init
-          # On force les droits d'exécution sur tous les binaires téléchargés
           chmod -R +x .terraform/providers/
         working-directory: ./terraform
 
@@ -37,5 +35,3 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve
         working-directory: ./terraform
-
-      # Optionnel : all ok
