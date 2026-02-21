@@ -21,9 +21,11 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Apply
+      - name: Terraform Init & Apply
         run: |
           terraform init
+          # CORRECTIF : On force les permissions d'exécution sur les providers
+          chmod -R +x .terraform/providers/
           terraform apply -auto-approve
         working-directory: ./terraform
 
