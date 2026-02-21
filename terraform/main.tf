@@ -67,13 +67,37 @@ resource "google_compute_target_http_proxy" "default" {
 }
 
 # --- FORWARDING RULE ---
-resource "google_compute_global_forwarding_rule" "default" {
-  name       = "http-content-rule"
-  target     = google_compute_target_http_proxy.default.id
-  port_range = "80"
+resource "google_compute_firewall" "allow_iap_ssh" {
+  name    = "allow-ssh-via-iap"
+  network = google_compute_network.vpc_network.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  # Plage d'IP spécifique et obligatoire pour IAP
+  source_ranges = ["35.235.240.0/20"]
+  target_tags   = ["allow-ssh"]
 }
 
 # --- OUTPUT (Pour voir l'IP sur GitHub) ---
 output "load_balancer_ip" {
   value = google_compute_global_forwarding_rule.default.ip_address
+}
+
+# 1. Créer le Cloud Router
+resource "google_compute_router" "router" {
+  name    = "nat-router"
+  network = google_compute_network.vpc_network.name
+  region  = var.region
+}
+
+# 2. Créer le Cloud NAT
+resource "google_compute_router_nat" "nat" {
+  name                               = "nat-config"
+  router                             = google_compute_router.router.name
+  region                             = var.region
+  nat_ip_allocate_option             = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 }
