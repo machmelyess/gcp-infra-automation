@@ -67,6 +67,22 @@ resource "google_compute_target_http_proxy" "default" {
 }
 
 # --- FORWARDING RULE ---
+# --- 1. Firewall pour les Health Checks (Port 80) ---
+resource "google_compute_firewall" "allow_health_check" {
+  name          = "allow-health-check"
+  network       = google_compute_network.vpc_network.name
+  direction     = "INGRESS"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["80"]
+  }
+
+  source_ranges = ["130.211.0.0/22", "35.191.0.0/16"]
+  target_tags   = ["http-server"]
+} # <--- VÉRIFIE BIEN CETTE ACCOLADE !
+
+# --- 2. Firewall pour le SSH via IAP (Port 22) ---
 resource "google_compute_firewall" "allow_iap_ssh" {
   name    = "allow-ssh-via-iap"
   network = google_compute_network.vpc_network.name
@@ -76,7 +92,6 @@ resource "google_compute_firewall" "allow_iap_ssh" {
     ports    = ["22"]
   }
 
-  # Plage d'IP spécifique et obligatoire pour IAP
   source_ranges = ["35.235.240.0/20"]
   target_tags   = ["allow-ssh"]
 }
