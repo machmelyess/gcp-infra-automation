@@ -80,12 +80,12 @@ resource "google_compute_firewall" "allow_iap_ssh" {
   source_ranges = ["35.235.240.0/20"]
   target_tags   = ["allow-ssh"]
 }
-
-# --- OUTPUT (Pour voir l'IP sur GitHub) ---
-output "load_balancer_ip" {
-  value = google_compute_global_forwarding_rule.default.ip_address
+# On change le nom interne en "default"
+resource "google_compute_global_forwarding_rule" "default" {
+  name       = "http-content-rule" # Ça, c'est le nom affiché dans la console Google
+  target     = google_compute_target_http_proxy.default.id
+  port_range = "80"
 }
-
 # 1. Créer le Cloud Router
 resource "google_compute_router" "router" {
   name    = "nat-router"
