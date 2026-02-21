@@ -1,49 +1,44 @@
-# VM 1 : Apache (Public)
+# 1. LA VM APACHE
 resource "google_compute_instance" "vm_apache" {
   name         = "vm-apache"
-  machine_type = "e2-micro"
-  zone         = var.zone
+  machine_type = "f1-micro"
+  zone         = var.gcp_zone
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-11"
+      image = "ubuntu-os-cloud/ubuntu-2204-lts"
     }
   }
 
   network_interface {
     subnetwork = google_compute_subnetwork.public_subnet.id
     access_config {
-      # Donne une IP publique pour l'accès externe
-    }
-  }
-}
-
-# VM 2 : Nginx (Privée)
-resource "google_compute_instance" "vm_nginx" {
-  name         = "vm-nginx"
-  machine_type = "e2-micro"
-  zone         = var.zone
-
-  boot_disk {
-    initialize_params {
-      image = "debian-cloud/debian-11"
+      # Pour avoir une IP publique
     }
   }
 
-  network_interface {
-    subnetwork = google_compute_subnetwork.private_subnet.id
-    # Pas d'access_config ici = IP privée uniquement
-  }
-}
-resource "google_compute_instance" "vm_apache" {
-  # ... (ton code existant)
   metadata = {
     ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
   }
 }
 
+# 2. LA VM NGINX
 resource "google_compute_instance" "vm_nginx" {
-  # ... (ton code existant)
+  name         = "vm-nginx"
+  machine_type = "f1-micro"
+  zone         = var.gcp_zone
+
+  boot_disk {
+    initialize_params {
+      image = "ubuntu-os-cloud/ubuntu-2204-lts"
+    }
+  }
+
+  network_interface {
+    subnetwork = google_compute_subnetwork.private_subnet.id
+    # Pas d'access_config ici si elle est en privé
+  }
+
   metadata = {
     ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
   }
