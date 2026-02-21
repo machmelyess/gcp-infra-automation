@@ -1,4 +1,4 @@
-# 1. LA VM APACHE
+# 1. LA VM APACHE (Subnet Public)
 resource "google_compute_instance" "vm_apache" {
   name         = "vm-apache"
   machine_type = "f1-micro"
@@ -13,16 +13,16 @@ resource "google_compute_instance" "vm_apache" {
   network_interface {
     subnetwork = google_compute_subnetwork.public_subnet.id
     access_config {
-      # Pour avoir une IP publique
+      # Donne une IP publique pour Ansible et le Web
     }
   }
 
   metadata = {
-    ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
+    ssh-keys = "ubuntu:${var.ssh_pub_key}"
   }
-}
+} # <-- Vérifie que cette accolade est là
 
-# 2. LA VM NGINX
+# 2. LA VM NGINX (Subnet Privé)
 resource "google_compute_instance" "vm_nginx" {
   name         = "vm-nginx"
   machine_type = "f1-micro"
@@ -36,11 +36,9 @@ resource "google_compute_instance" "vm_nginx" {
 
   network_interface {
     subnetwork = google_compute_subnetwork.private_subnet.id
-    # Pas d'access_config ici si elle est en privé
   }
 
-  
-# Dans le bloc metadata de vm_apache ET vm_nginx
-metadata = {
-  ssh-keys = "ubuntu:${var.ssh_pub_key}"
-}
+  metadata = {
+    ssh-keys = "ubuntu:${var.ssh_pub_key}"
+  }
+} # <-- C'est celle-ci qui manquait probablement !
