@@ -1,56 +1,38 @@
-name: CI/CD GCP Infra & Config
-
-name: Infrastructure Deployment
+name: CI-CD Deployment
 
 on:
   push:
     branches:
-      - master  # ou main
-  workflow_dispatch: # <--- AJOUTE CETTE LIGNE EXACTEMENT ICI
+      - master
+  workflow_dispatch: # Pour avoir le bouton bleu "Run workflow"
 
 jobs:
-  # ... le reste de ton code
-
-jobs:
-  deploy:
+  terraform:
+    name: 'Terraform and Ansible'
     runs-on: ubuntu-latest
+
+    # Variables d'environnement pour GCP et Terraform
+    env:
+      GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+      TF_VAR_ssh_pub_key: ${{ secrets.SSH_PUBLIC_KEY }}
+
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # 1. Auth GCP
-      - name: Google Auth
-        uses: 'google-github-actions/auth@v2'
-        with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
-
-      # 2. Terraform Apply
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Init & Apply
-        run: |
-          terraform init
-          # CORRECTIF : On force les permissions d'exécution sur les providers
-          chmod -R +x .terraform/providers/
-          terraform apply -auto-approve
+      - name: Terraform Init
+        run: terraform init
         working-directory: ./terraform
-        env:
-          TF_VAR_ssh_pub_key: ${{ secrets.SSH_PUBLIC_KEY }} # <-- ICI
 
-      # 3. INSTALLATION DE LA CLÉ SSH
-      - name: Install SSH Key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: unnecessary
+      - name: Terraform Plan
+        run: terraform plan
+        working-directory: ./terraform
 
-      # 4. Ansible Deploy
-      - name: Run Playbook
-        run: |
-          ansible-playbook -i inventory.ini playbook.yml
-        working-directory: ./ansible
-        env:
-          ANSIBLE_HOST_KEY_CHECKING: False
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: ./terraform
 
-          
+      # Optionnel : Ajoute ici tes étapes Ansible si tu en as
