@@ -34,10 +34,17 @@ resource "google_compute_backend_service" "default" {
 }
 
 # Health Check
-resource "google_compute_http_health_check" "default" {
-  name               = "http-health-check"
-  request_path       = "/"
-  check_interval_sec = 5
+resource "google_compute_firewall" "allow_health_check" {
+  name          = "allow-health-check"
+  network       = google_compute_network.vpc_network.name
+  direction     = "INGRESS"
+  allow {
+    protocol = "tcp"
+    ports    = ["80"]
+  }
+  # IPs cruciales de Google pour les Health Checks
+  source_ranges = ["130.211.0.0/22", "35.191.0.0/16"]
+  target_tags   = ["http-server"] # Assure-toi que tes VMs ont ce tag !
 }
 
 # URL Map & Proxy HTTP
