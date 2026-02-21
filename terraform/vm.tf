@@ -39,7 +39,8 @@ resource "google_compute_instance" "vm_nginx" {
     # Pas d'access_config ici si elle est en privé
   }
 
-  metadata = {
-    ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
-  }
+  
+# Dans le bloc metadata de vm_apache ET vm_nginx
+metadata = {
+  ssh-keys = "ubuntu:${var.ssh_pub_key}"
 }

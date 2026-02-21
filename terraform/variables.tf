@@ -20,3 +20,8 @@ variable "gcp_zone" {
   type        = string
   default     = "europe-west1-b" # Ou une autre zone de ta région
 }
+
+variable "ssh_pub_key" {
+  description = "La clé publique SSH injectée par GitHub"
+  type        = string
+}
