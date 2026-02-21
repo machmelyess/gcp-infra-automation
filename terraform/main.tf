@@ -1,5 +1,12 @@
+# --- HEALTH CHECK (La pièce manquante) ---
+resource "google_compute_http_health_check" "default" {
+  name               = "http-health-check"
+  request_path       = "/"
+  check_interval_sec = 5
+  timeout_sec        = 5
+}
 
-# Groupe pour Apache (Public)
+# --- GROUPS ---
 resource "google_compute_instance_group" "apache_group" {
   name      = "apache-group"
   zone      = var.zone
@@ -10,7 +17,6 @@ resource "google_compute_instance_group" "apache_group" {
   }
 }
 
-# Groupe pour Nginx (Privé)
 resource "google_compute_instance_group" "nginx_group" {
   name      = "nginx-group"
   zone      = var.zone
@@ -20,8 +26,11 @@ resource "google_compute_instance_group" "nginx_group" {
     port = 80
   }
 }
+
+# --- BACKEND SERVICE ---
 resource "google_compute_backend_service" "default" {
   name          = "backend-service"
+  # Utilise ici la ressource déclarée plus haut
   health_checks = [google_compute_http_health_check.default.id]
   
   backend {
@@ -33,7 +42,7 @@ resource "google_compute_backend_service" "default" {
   }
 }
 
-# Health Check
+# --- FIREWALL ---
 resource "google_compute_firewall" "allow_health_check" {
   name          = "allow-health-check"
   network       = google_compute_network.vpc_network.name
@@ -42,12 +51,11 @@ resource "google_compute_firewall" "allow_health_check" {
     protocol = "tcp"
     ports    = ["80"]
   }
-  # IPs cruciales de Google pour les Health Checks
   source_ranges = ["130.211.0.0/22", "35.191.0.0/16"]
-  target_tags   = ["http-server"] # Assure-toi que tes VMs ont ce tag !
+  target_tags   = ["http-server"] 
 }
 
-# URL Map & Proxy HTTP
+# --- URL MAP & PROXY ---
 resource "google_compute_url_map" "default" {
   name            = "web-map"
   default_service = google_compute_backend_service.default.id
@@ -58,9 +66,14 @@ resource "google_compute_target_http_proxy" "default" {
   url_map = google_compute_url_map.default.id
 }
 
-# IP Globale du LB
+# --- FORWARDING RULE ---
 resource "google_compute_global_forwarding_rule" "default" {
   name       = "http-content-rule"
   target     = google_compute_target_http_proxy.default.id
   port_range = "80"
+}
+
+# --- OUTPUT (Pour voir l'IP sur GitHub) ---
+output "load_balancer_ip" {
+  value = google_compute_global_forwarding_rule.default.ip_address
 }
