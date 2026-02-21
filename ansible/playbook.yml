@@ -1,0 +1,19 @@
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init & Apply
+        run: |
+          terraform init
+          terraform apply -auto-approve
+        working-directory: ./terraform
+
+      - name: Run Ansible
+        run: |
+          ansible-playbook -i inventory.ini playbook.yml
+        working-directory: ./ansible
