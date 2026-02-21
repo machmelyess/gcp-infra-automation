@@ -1,19 +1,29 @@
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+---
+- name: Configuration des Serveurs Web
+  hosts: web_servers
+  become: yes
+  tasks:
 
-      - name: Terraform Init & Apply
-        run: |
-          terraform init
-          terraform apply -auto-approve
-        working-directory: ./terraform
+    # Configuration pour la VM Apache
+    - name: Installer et démarrer Apache sur VM1
+      if: inventory_hostname == 'vm_apache'
+      block:
+        - apt:
+            name: apache2
+            state: present
+            update_cache: yes
+        - copy:
+            content: "<h1>Bienvenue sur Apache (VM1) via GCP Load Balancer</h1>"
+            dest: /var/www/html/index.html
 
-      - name: Run Ansible
-        run: |
-          ansible-playbook -i inventory.ini playbook.yml
-        working-directory: ./ansible
+    # Configuration pour la VM Nginx
+    - name: Installer et démarrer Nginx sur VM2
+      if: inventory_hostname == 'vm_nginx'
+      block:
+        - apt:
+            name: nginx
+            state: present
+            update_cache: yes
+        - copy:
+            content: "<h1>Bienvenue sur Nginx (VM2) via GCP Load Balancer</h1>"
+            dest: /var/www/html/index.nginx-debian.html

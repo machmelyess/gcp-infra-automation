@@ -1,14 +1,14 @@
-# GCP provider
-provider "google" {
-  credentials = file(var.gcp_svc_key)
-  project     = var.gcp_project
-  region      = var.gcp_region
-}
 terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 4.0"
+      version = " 5.0" # Utilise la version 5 pour les dernières fonctionnalités
     }
   }
+}
+
+provider "google" {
+  project = var.project_id
+  region  = var.region
+  # PAS DE LIGNE "credentials = ..." ICI !
 }

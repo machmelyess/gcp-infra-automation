@@ -1,24 +1,35 @@
-# Instance Group (pour le LB)
-resource "google_compute_instance_group" "web_group" {
-  name        = "web-servers-group"
-  description = "Groupe pour le Load Balancer"
-  instances   = [
-    google_compute_instance.vm_apache.self_link,
-    google_compute_instance.vm_nginx.self_link
-  ]
+
+# Groupe pour Apache (Public)
+resource "google_compute_instance_group" "apache_group" {
+  name      = "apache-group"
+  zone      = var.zone
+  instances = [google_compute_instance.vm_apache.self_link]
   named_port {
     name = "http"
     port = 80
   }
-  zone = var.zone
 }
 
-# Backend Service
+# Groupe pour Nginx (Privé)
+resource "google_compute_instance_group" "nginx_group" {
+  name      = "nginx-group"
+  zone      = var.zone
+  instances = [google_compute_instance.vm_nginx.self_link]
+  named_port {
+    name = "http"
+    port = 80
+  }
+}
 resource "google_compute_backend_service" "default" {
   name          = "backend-service"
   health_checks = [google_compute_http_health_check.default.id]
+  
   backend {
-    group = google_compute_instance_group.web_group.id
+    group = google_compute_instance_group.apache_group.id
+  }
+
+  backend {
+    group = google_compute_instance_group.nginx_group.id
   }
 }
 
