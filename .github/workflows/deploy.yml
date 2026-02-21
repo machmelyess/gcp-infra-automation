@@ -1,4 +1,5 @@
 name: CI/CD GCP Infra & Config
+
 on:
   push:
     branches: [ main ]
@@ -7,32 +8,36 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       # 1. Auth GCP
-      - uses: 'google-github-actions/auth@v2'
+      - name: Google Auth
+        uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
       # 2. Terraform Apply
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-      - run: |
+
+      - name: Terraform Apply
+        run: |
           terraform init
           terraform apply -auto-approve
         working-directory: ./terraform
 
-      # 3. Ansible Deploy
-      - name: Run Playbook
-        run: |
-          # Installation d'ansible si nécessaire (souvent déjà présent sur l'image ubuntu-latest)
-          ansible-playbook -i inventory.ini playbook.yml
-        working-directory: ./ansible
-        env:
-          ANSIBLE_HOST_KEY_CHECKING: False
-
-          - name: Install SSH Key
+      # 3. INSTALLATION DE LA CLÉ SSH (Indispensable AVANT Ansible)
+      - name: Install SSH Key
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           known_hosts: unnecessary
+
+      # 4. Ansible Deploy
+      - name: Run Playbook
+        run: |
+          ansible-playbook -i inventory.ini playbook.yml
+        working-directory: ./ansible
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: False
