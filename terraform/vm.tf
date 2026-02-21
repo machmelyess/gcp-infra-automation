@@ -35,3 +35,16 @@ resource "google_compute_instance" "vm_nginx" {
     # Pas d'access_config ici = IP privée uniquement
   }
 }
+resource "google_compute_instance" "vm_apache" {
+  # ... (ton code existant)
+  metadata = {
+    ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
+  }
+}
+
+resource "google_compute_instance" "vm_nginx" {
+  # ... (ton code existant)
+  metadata = {
+    ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
+  }
+}
