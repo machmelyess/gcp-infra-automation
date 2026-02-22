@@ -1,6 +1,12 @@
 # ==========================================================
 # 1. INFRASTRUCTURE RÉSEAU (NAT & ROUTER)
 # ==========================================================
+terraform {
+  backend "gcs" {
+    bucket  = "terraform-state-test-dev-485716" # Remplace par le nom qui a marché
+    prefix  = "terraform/state"
+  }
+}
 
 # Créer le Cloud Router (Nécessaire pour le NAT)
 resource "google_compute_router" "router" {
